@@ -1,6 +1,6 @@
 {
   "name": "thelounge-plugin-quote",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A plugin to add a quote option to TheLounge",
   "main": "index.js",
   "scripts": {
