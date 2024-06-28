@@ -1,4 +1,5 @@
 const sqlite3 = require('sqlite3').verbose();
+const path = require('path');
 
 let db;
 
@@ -6,12 +7,13 @@ module.exports = {
   onServerStart: (api) => {
     console.log("QuotePlugin: onServerStart called");
 
-    // Initialize SQLite database
-    db = new sqlite3.Database('./quotes.db', (err) => {
+    const dbPath = path.join(api.config.getHome(), 'plugins', 'quotes.db');
+
+    db = new sqlite3.Database(dbPath, (err) => {
       if (err) {
         console.error('Could not connect to database', err);
       } else {
-        console.log('Connected to database');
+        console.log('Connected to database at', dbPath);
       }
     });
 
@@ -33,7 +35,6 @@ module.exports = {
       }
     });
 
-    // Rotate log to keep only the latest 5000 messages
     setInterval(() => {
       db.run(`
         DELETE FROM messages
@@ -43,7 +44,7 @@ module.exports = {
           LIMIT 5000
         )
       `);
-    }, 3600000); // Run cleanup every hour
+    }, 3600000);
   },
 
   onMessage: (message, network) => {

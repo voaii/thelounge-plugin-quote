@@ -1,9 +1,11 @@
 const sqlite3 = require('sqlite3').verbose();
-const db = new sqlite3.Database('./quotes.db');
+const path = require('path');
+const dbPath = path.join(api.config.getHome(), 'plugins', 'quotes.db');
+const db = new sqlite3.Database(dbPath);
 
 module.exports = (client) => {
   client.on('command:quote', (target, command, args) => {
-    console.log("QuotePlugin: Command received", command, args); // Log received command
+    console.log("QuotePlugin: Command received", command, args);
     const username = args[0];
     if (!username) {
       client.sendMessage({
@@ -48,7 +50,7 @@ module.exports = (client) => {
 
       const quoteListener = (network, chan, cmd, newArgs) => {
         const selection = parseInt(newArgs[0], 10) - 1;
-        console.log("QuotePlugin: Selection received", selection); // Log selection
+        console.log("QuotePlugin: Selection received", selection);
         if (isNaN(selection) || selection < 0 || selection >= rows.length) {
           client.sendMessage({
             type: "error",
@@ -66,7 +68,6 @@ module.exports = (client) => {
           chan: target.chan.id
         });
 
-        // Remove the listener to prevent duplicate handling
         client.removeListener("input", quoteListener);
       };
 
