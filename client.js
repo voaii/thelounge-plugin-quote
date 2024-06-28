@@ -1,9 +1,10 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
-const dbPath = path.join(api.config.getHome(), 'plugins', 'quotes.db');
-const db = new sqlite3.Database(dbPath);
 
 module.exports = (client) => {
+  const dbPath = path.join(client.manager.getPersistentStorageDir(), 'quotes.db');
+  const db = new sqlite3.Database(dbPath);
+
   client.on('command:quote', (target, command, args) => {
     console.log("QuotePlugin: Command received", command, args);
     const username = args[0];

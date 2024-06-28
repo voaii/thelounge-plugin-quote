@@ -4,10 +4,10 @@ const path = require('path');
 let db;
 
 module.exports = {
-  onServerStart: (api) => {
+  onServerStart: (thelounge) => {
     console.log("QuotePlugin: onServerStart called");
 
-    const dbPath = path.join(api.config.getHome(), 'plugins', 'quotes.db');
+    const dbPath = path.join(thelounge.Config.getPersistentStorageDir(), 'quotes.db');
 
     db = new sqlite3.Database(dbPath, (err) => {
       if (err) {
@@ -26,7 +26,7 @@ module.exports = {
       )
     `);
 
-    api.Commands.add({
+    thelounge.Commands.add({
       name: "quote",
       description: "Quotes a specific message from the last 50 messages by a user",
       usage: "/quote <username>",
