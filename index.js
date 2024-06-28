@@ -23,32 +23,40 @@ module.exports = {
       description: "Quotes a specific message from the last 50 messages by a user",
       usage: "/quote <username>",
       handler: (client, target, args) => {
+        console.log("QuotePlugin: Command handler triggered", args);
         client.emit('command:quote', target, 'quote', args);
       }
     });
 
     setInterval(saveQuotes, 3600000);
+    process.on('exit', saveQuotes);
+    process.on('SIGINT', saveQuotes);
+    process.on('SIGTERM', saveQuotes);
 
-    process.on('SIGINT', () => {
-      saveQuotes();
-      process.exit();
-    });
-    process.on('SIGTERM', () => {
-      saveQuotes();
-      process.exit();
-    });
-  },
-
-  onMessage: (client, network, chan, message) => {
-    if (message.type === 'message') {
-      quotes.push({
-        username: message.from,
-        text: message.text,
-        timestamp: message.time
+    const initializeClient = (client) => {
+      client.on('join', (channel, message) => {
+        console.log(`User ${client.name} joined channel ${channel.name}`);
       });
-      if (quotes.length > 5000) {
-        quotes.shift();
-      }
+
+      client.on('message', (channel, message) => {
+        if (message.type === 'message') {
+          quotes.push({
+            username: message.from,
+            text: message.text,
+            timestamp: message.time
+          });
+          if (quotes.length > 5000) {
+            quotes.shift();
+          }
+        }
+      });
+    };
+
+    if (thelounge.clients) {
+      thelounge.clients.forEach(initializeClient);
+      thelounge.on('client:new', initializeClient);
+    } else {
+      console.error("QuotePlugin: thelounge.clients is undefined");
     }
   }
 };

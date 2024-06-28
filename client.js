@@ -44,6 +44,7 @@ module.exports = (client) => {
     });
 
     const quoteListener = (network, chan, cmd, newArgs) => {
+      console.log("QuotePlugin: Selection received", newArgs);
       const selection = parseInt(newArgs[0], 10) - 1;
       if (isNaN(selection) || selection < 0 || selection >= userQuotes.length) {
         client.sendMessage({
