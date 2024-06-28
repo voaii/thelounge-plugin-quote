@@ -29,19 +29,26 @@ module.exports = {
 
     setInterval(saveQuotes, 3600000);
 
-    thelounge.on('message', (message, network) => {
-      if (message.type === 'message') {
-        quotes.push({
-          username: message.from,
-          text: message.text,
-          timestamp: message.time
-        });
-        if (quotes.length > 5000) {
-          quotes.shift(); // Keep the last 5000 messages
-        }
-      }
+    process.on('SIGINT', () => {
+      saveQuotes();
+      process.exit();
     });
+    process.on('SIGTERM', () => {
+      saveQuotes();
+      process.exit();
+    });
+  },
 
-    process.on('exit', saveQuotes);
+  onMessage: (client, network, chan, message) => {
+    if (message.type === 'message') {
+      quotes.push({
+        username: message.from,
+        text: message.text,
+        timestamp: message.time
+      });
+      if (quotes.length > 5000) {
+        quotes.shift();
+      }
+    }
   }
 };
