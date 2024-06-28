@@ -8,9 +8,7 @@
   },
   "author": "voaii",
   "license": "MIT",
-  "dependencies": {
-    "sqlite3": "^5.0.0"
-  },
+  "dependencies": {},
   "thelounge": {
     "name": "Quote Plugin",
     "description": "Quotes a specific message from the last 50 messages by a user"

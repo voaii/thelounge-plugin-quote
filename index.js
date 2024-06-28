@@ -1,30 +1,22 @@
-const sqlite3 = require('sqlite3').verbose();
+const fs = require('fs');
 const path = require('path');
 
-let db;
+let quotes = [];
 
 module.exports = {
   onServerStart: (thelounge) => {
     console.log("QuotePlugin: onServerStart called");
 
-    const dbPath = path.join(thelounge.Config.getPersistentStorageDir(), 'quotes.db');
+    const storageDir = thelounge.Config.getPersistentStorageDir();
+    const dbPath = path.join(storageDir, 'quotes.json');
 
-    db = new sqlite3.Database(dbPath, (err) => {
-      if (err) {
-        console.error('Could not connect to database', err);
-      } else {
-        console.log('Connected to database at', dbPath);
-      }
-    });
+    if (fs.existsSync(dbPath)) {
+      quotes = JSON.parse(fs.readFileSync(dbPath));
+    }
 
-    db.run(`
-      CREATE TABLE IF NOT EXISTS messages (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT,
-        text TEXT,
-        timestamp INTEGER
-      )
-    `);
+    const saveQuotes = () => {
+      fs.writeFileSync(dbPath, JSON.stringify(quotes, null, 2));
+    };
 
     thelounge.Commands.add({
       name: "quote",
@@ -35,25 +27,21 @@ module.exports = {
       }
     });
 
-    setInterval(() => {
-      db.run(`
-        DELETE FROM messages
-        WHERE id NOT IN (
-          SELECT id FROM messages
-          ORDER BY timestamp DESC
-          LIMIT 5000
-        )
-      `);
-    }, 3600000);
-  },
+    setInterval(saveQuotes, 3600000);
 
-  onMessage: (message, network) => {
-    if (message.type === 'message') {
-      const { from, text, time } = message;
-      db.run(`
-        INSERT INTO messages (username, text, timestamp)
-        VALUES (?, ?, ?)
-      `, [from, text, time]);
-    }
+    thelounge.on('message', (message, network) => {
+      if (message.type === 'message') {
+        quotes.push({
+          username: message.from,
+          text: message.text,
+          timestamp: message.time
+        });
+        if (quotes.length > 5000) {
+          quotes.shift(); // Keep the last 5000 messages
+        }
+      }
+    });
+
+    process.on('exit', saveQuotes);
   }
 };
